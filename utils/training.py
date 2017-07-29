@@ -247,7 +247,9 @@ def mknfold(dall, nfold, param, seed, evals=(), fpreproc=None, stratified=False,
     ret = []
     for k in range(nfold):
         dtrain = dall.slice(np.concatenate([idset[i] for i in range(nfold) if k != i]))
+        dtrain.set_label(dall.get_label())
         dtest = dall.slice(idset[k])
+        dtest.set_label(dall.get_label())
         # run preprocessing on the data set if needed
         if fpreproc is not None:
             dtrain, dtest, tparam = fpreproc(dtrain, dtest, param.copy())
