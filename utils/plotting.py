@@ -1,3 +1,13 @@
+# coding: utf-8
+# pylint: disable=too-many-locals, too-many-arguments, invalid-name,
+# pylint: disable=too-many-branches
+"""Plotting Library."""
+from __future__ import absolute_import
+
+import re
+from io import BytesIO
+import numpy as np
+
 from xgboost.core import Booster
 from xgboost.sklearn import XGBModel
 
