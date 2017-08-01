@@ -11,6 +11,21 @@ from xgboost.compat import (SKLEARN_INSTALLED, XGBStratifiedKFold)
 from xgboost import rabit
 from xgboost import callback
 
+import time
+
+class Timeit:
+    def __init__(self, process_name, verbose=1):
+        self.process_name = process_name
+        self.verbose = verbose
+    def __enter__(self):
+        if self.verbose:
+            print(self.process_name + " starts...")
+            self.begin_time = time.time()
+    def __exit__(self, type, value, traceback):
+        if self.verbose:
+            end_time = time.time()
+            # print(self.process_name + " ended.")
+            print('{}: {:.2f}s'.format(self.process_name, end_time - self.begin_time))
 
 def _train_internal(params, dtrain,
                     num_boost_round=10, evals=(),
@@ -71,7 +86,8 @@ def _train_internal(params, dtrain,
         # Distributed code: need to resume to this point.
         # Skip the first update if it is a recovery step.
         if version % 2 == 0:
-            bst.update(dtrain, i, obj)
+            with Timeit('Round {} update'.format(i)):
+                bst.update(dtrain, i, obj)
             bst.save_rabit_checkpoint()
             version += 1
 
@@ -81,13 +97,14 @@ def _train_internal(params, dtrain,
         evaluation_result_list = []
         # check evaluation result.
         if len(evals) != 0:
-            bst_eval_set = bst.eval_set(evals, i, feval)
-            if isinstance(bst_eval_set, STRING_TYPES):
-                msg = bst_eval_set
-            else:
-                msg = bst_eval_set.decode()
-            res = [x.split(':') for x in msg.split()]
-            evaluation_result_list = [(k, float(v)) for k, v in res[1:]]
+            with Timeit('Round {} eval'.format(i)):
+                bst_eval_set = bst.eval_set(evals, i, feval)
+                if isinstance(bst_eval_set, STRING_TYPES):
+                    msg = bst_eval_set
+                else:
+                    msg = bst_eval_set.decode()
+                res = [x.split(':') for x in msg.split()]
+                evaluation_result_list = [(k, float(v)) for k, v in res[1:]]
         try:
             for cb in callbacks_after_iter:
                 cb(CallbackEnv(model=bst,
