@@ -1,5 +1,7 @@
 # Change Log
 
+v4: f1 optimizer and none handling
+
 v3: single model with validation as baseline
 
 v2: dow & tod features
