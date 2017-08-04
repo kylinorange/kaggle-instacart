@@ -1,0 +1,2 @@
+booster,colsample_bytree,eval_metric,grow_policy,learning_rate,max_depth,max_leaves,min_child_weight,min_split_loss,objective,reg_alpha,reg_lambda,search_id,subsample,tree_method
+gbtree,0.9,logloss,lossguide,0.1,8,64,10,0.7,reg:logistic,2e-05,10,0,0.7,hist
