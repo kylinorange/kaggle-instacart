@@ -2,5 +2,6 @@
 .ipynb_checkpoints/
 /*.csv
 /aug/*.csv
+/abt/*.csv
 *.pyc
 *.bst
