@@ -103,6 +103,9 @@ class Data:
         Data.random_feature(X_train)
         Data.random_feature(X_val)
 
+        X_train.sort_index(axis=1, inplace=True)
+        X_val.sort_index(axis=1, inplace=True)
+
         dtrain = xgboost.DMatrix(X_train, y_train)
         dval = xgboost.DMatrix(X_val, y_val)
 
