@@ -60,16 +60,30 @@ schema = {
 
 class Data:
     @staticmethod
-    def dtrain(down_sample=None, test_size=0.2):
-        data = pd.read_csv(
-            os.path.join(root, 'abt_train.csv'),
-            dtype=schema)
+    def train_aug(down_sample=None):
+        dfs = []
+        for s in range(4):
+            for ms in range(52):
+                df = pd.read_csv(
+                    os.path.join(root, 'abt', 'abt_train.aug{}-{}.csv'.format(s, ms)),
+                    dtype=schema)
+                if down_sample is not None:
+                    df = df[df.order_id % down_sample == 0]
+                df.loc[:, 'reordered'] = df.reordered.fillna(0)
+                dfs.append(df)
+        return pd.concat(dfs)
 
+    @staticmethod
+    def random_feature(data):
         n = data.shape[0]
-        data['rand_uniform'] = np.random.uniform(0, 1, n)
-        data['rand_normal'] = np.random.normal(0, 1, n)
+        data['rand_uniform'] = np.random.uniform(0, 1, n).astype(np.float16)
+        data['rand_normal'] = np.random.normal(0, 1, n).astype(np.float16)
 
-        train = data
+    @staticmethod
+    def dtrain(down_sample=None, test_size=0.2, aug = False):
+        train = pd.read_csv(
+            os.path.join(root, 'abt', 'abt_train.csv'),
+            dtype=schema)
 
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
@@ -80,6 +94,14 @@ class Data:
             train.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1),
             train.reordered,
             test_size=test_size, random_state=1019)
+
+        if aug:
+            train_aug = Data.train_aug(down_sample=down_sample)
+            X_train = pd.concat([X_train, train_aug.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1)])
+            y_train = pd.concat([y_train, train_aug.reordered])
+
+        Data.random_feature(X_train)
+        Data.random_feature(X_val)
 
         dtrain = xgboost.DMatrix(X_train, y_train)
         dval = xgboost.DMatrix(X_val, y_val)
@@ -92,9 +114,7 @@ class Data:
             os.path.join(root, 'abt_test.csv'),
             dtype=schema)
 
-        n = data.shape[0]
-        data['rand_uniform'] = np.random.uniform(0, 1, n)
-        data['rand_normal'] = np.random.normal(0, 1, n)
+        Data.random_feature(data)
 
         test = data
 
