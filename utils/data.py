@@ -69,9 +69,8 @@ class Data:
                     dtype=schema)
                 if down_sample is not None:
                     df = df[df.order_id % down_sample == 0]
-                df.loc[:, 'reordered'] = df.reordered.fillna(0)
                 dfs.append(df)
-        return pd.concat(dfs)
+        return dfs
 
     @staticmethod
     def random_feature(data):
@@ -88,23 +87,17 @@ class Data:
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
 
+        if aug:
+            train_aug = Data.train_aug(down_sample=down_sample)
+            train = pd.concat([train] + train_aug)
+
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
+        Data.random_feature(train)
 
         X_train, X_val, y_train, y_val = train_test_split(
             train.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1),
             train.reordered,
             test_size=test_size, random_state=1019)
-
-        if aug:
-            train_aug = Data.train_aug(down_sample=down_sample)
-            X_train = pd.concat([X_train, train_aug.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1)])
-            y_train = pd.concat([y_train, train_aug.reordered])
-
-        Data.random_feature(X_train)
-        Data.random_feature(X_val)
-
-        X_train.sort_index(axis=1, inplace=True)
-        X_val.sort_index(axis=1, inplace=True)
 
         dtrain = xgboost.DMatrix(X_train, y_train)
         dval = xgboost.DMatrix(X_val, y_val)

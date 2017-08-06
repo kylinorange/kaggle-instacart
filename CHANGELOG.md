@@ -1,5 +1,7 @@
 # Change Log
 
+v6: da based val set
+
 v5: data augmentation
 
 v4: f1 optimizer and none handling
