@@ -152,15 +152,15 @@ class Data:
 
     @staticmethod
     def test(down_sample=None):
-        data = pd.read_csv(
-            os.path.join(root, 'abt_test.csv'),
+        test = pd.read_csv(
+            os.path.join(root, 'abt', 'abt_test.csv'),
             dtype=schema)
 
-        Data.random_feature(data)
-
-        test = data
+        Data.random_feature(test)
 
         if down_sample is not None:
             test = test[test.order_id % down_sample == 0]
+
+        test.sort_index(axis=1, inplace=True)
 
         return test
