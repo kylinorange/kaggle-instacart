@@ -69,6 +69,7 @@ class Data:
                     dtype=schema)
                 if down_sample is not None:
                     df = df[df.order_id % down_sample == 0]
+                df['aug'] = 1
                 df.loc[:, 'reordered'] = df.reordered.fillna(0)
                 dfs.append(df)
         return pd.concat(dfs)
@@ -81,6 +82,8 @@ class Data:
 
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
+
+        train['aug'] = 0
 
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
 
@@ -115,6 +118,7 @@ class Data:
                     dtype=schema)
                 if down_sample is not None:
                     df = df[df.order_id % down_sample == 0]
+                df['aug'] = 1
                 dfs.append(df)
         return dfs
 
@@ -132,6 +136,8 @@ class Data:
 
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
+
+        train['aug'] = 0
 
         if aug:
             train_aug = Data.train_aug(down_sample=down_sample)
@@ -160,6 +166,8 @@ class Data:
 
         if down_sample is not None:
             test = test[test.order_id % down_sample == 0]
+
+        test['aug'] = 0
 
         test.sort_index(axis=1, inplace=True)
 
