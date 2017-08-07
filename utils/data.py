@@ -60,10 +60,10 @@ schema = {
 
 class Data:
     @staticmethod
-    def train_aug0(down_sample=None):
+    def train_aug(down_sample=None):
         dfs = []
-        for s in range(4):
-            for ms in range(52):
+        for s in range(2):
+            for ms in range(32):
                 df = pd.read_csv(
                     os.path.join(root, 'abt', 'abt_train.aug{}-{}.csv'.format(s, ms)),
                     dtype=schema)
@@ -72,10 +72,10 @@ class Data:
                 df['aug'] = 1
                 df.loc[:, 'reordered'] = df.reordered.fillna(0)
                 dfs.append(df)
-        return pd.concat(dfs)
+        return dfs
 
     @staticmethod
-    def dtrain0(down_sample=None, test_size=0.2, aug = False):
+    def train(down_sample=None, test_size=0.2, aug=False, orig_val=False):
         train = pd.read_csv(
             os.path.join(root, 'abt', 'abt_train.csv'),
             dtype=schema)
@@ -84,16 +84,19 @@ class Data:
             train = train[train.order_id % down_sample == 0]
 
         train['aug'] = 0
-
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
+
+        if aug and not orig_val:
+            train_aug = Data.train_aug(down_sample=down_sample)
+            train = pd.concat([train] + train_aug)
 
         X_train, X_val, y_train, y_val = train_test_split(
             train.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1),
             train.reordered,
             test_size=test_size, random_state=1019)
 
-        if aug:
-            train_aug = Data.train_aug0(down_sample=down_sample)
+        if aug and orig_val:
+            train_aug = pd.concat(Data.train_aug(down_sample=down_sample))
             X_train = pd.concat([X_train, train_aug.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1)])
             y_train = pd.concat([y_train, train_aug.reordered])
 
@@ -103,58 +106,7 @@ class Data:
         X_train.sort_index(axis=1, inplace=True)
         X_val.sort_index(axis=1, inplace=True)
 
-        dtrain = xgboost.DMatrix(X_train, y_train)
-        dval = xgboost.DMatrix(X_val, y_val)
-
-        return (dtrain, dval)
-
-    @staticmethod
-    def train_aug(down_sample=None):
-        dfs = []
-        for s in range(4):
-            for ms in range(52):
-                df = pd.read_csv(
-                    os.path.join(root, 'abt', 'abt_train.aug{}-{}.csv'.format(s, ms)),
-                    dtype=schema)
-                if down_sample is not None:
-                    df = df[df.order_id % down_sample == 0]
-                df['aug'] = 1
-                dfs.append(df)
-        return dfs
-
-    @staticmethod
-    def random_feature(data):
-        n = data.shape[0]
-        data['rand_uniform'] = np.random.uniform(0, 1, n).astype(np.float16)
-        data['rand_normal'] = np.random.normal(0, 1, n).astype(np.float16)
-
-    @staticmethod
-    def dtrain(down_sample=None, test_size=0.2, aug = False):
-        train = pd.read_csv(
-            os.path.join(root, 'abt', 'abt_train.csv'),
-            dtype=schema)
-
-        if down_sample is not None:
-            train = train[train.order_id % down_sample == 0]
-
-        train['aug'] = 0
-
-        if aug:
-            train_aug = Data.train_aug(down_sample=down_sample)
-            train = pd.concat([train] + train_aug)
-
-        train.loc[:, 'reordered'] = train.reordered.fillna(0)
-        Data.random_feature(train)
-
-        X_train, X_val, y_train, y_val = train_test_split(
-            train.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1),
-            train.reordered,
-            test_size=test_size, random_state=1019)
-
-        dtrain = xgboost.DMatrix(X_train, y_train)
-        dval = xgboost.DMatrix(X_val, y_val)
-
-        return (dtrain, dval)
+        return (X_train, X_val, y_train, y_val)
 
     @staticmethod
     def test(down_sample=None):
@@ -162,13 +114,18 @@ class Data:
             os.path.join(root, 'abt', 'abt_test.csv'),
             dtype=schema)
 
-        Data.random_feature(test)
-
         if down_sample is not None:
             test = test[test.order_id % down_sample == 0]
 
         test['aug'] = 0
+        Data.random_feature(test)
 
         test.sort_index(axis=1, inplace=True)
 
         return test
+
+    @staticmethod
+    def random_feature(data):
+        n = data.shape[0]
+        data['rand_uniform'] = np.random.uniform(0, 1, n).astype(np.float16)
+        data['rand_normal'] = np.random.normal(0, 1, n).astype(np.float16)
