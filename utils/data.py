@@ -55,15 +55,17 @@ schema = {
     'up_order_rate_since_first_order': np.float32,
     'reordered': np.float32,
     'prod_market_share_hod': np.float32,
-    'prod_market_share_dow': np.float32
+    'prod_market_share_dow': np.float32,
+    'up_days_since_last_not_order': np.int32,
+    'up_order_since_last_not_order': np.int16
 }
 
 class Data:
     @staticmethod
     def train_aug(down_sample=None):
         dfs = []
-        for s in range(2):
-            for ms in range(32):
+        for s in range(32):
+            for ms in range(2):
                 df = pd.read_csv(
                     os.path.join(root, 'abt', 'abt_train.aug{}-{}.csv'.format(s, ms)),
                     dtype=schema)
