@@ -1,5 +1,11 @@
 # Change Log
 
+v9: sb features
+
+v8: days/orders since last not order
+
+v7: re-gain baseline, experiments
+
 v6: da based val set
 
 v5: data augmentation

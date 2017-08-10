@@ -1,0 +1,2 @@
+booster,colsample_bytree,eval_metric,learning_rate,max_depth,min_child_weight,objective,search_id,subsample,tree_method
+gbtree,0.9,logloss,0.1,16,100,reg:logistic,0,0.5,hist

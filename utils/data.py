@@ -56,8 +56,8 @@ schema = {
     'reordered': np.float32,
     'prod_market_share_hod': np.float32,
     'prod_market_share_dow': np.float32,
-    'up_days_since_last_not_order': np.int32,
-    'up_order_since_last_not_order': np.int16
+    'up_days_since_last_not_order': np.float32,
+    'up_order_since_last_not_order': np.float16
 }
 
 class Data:
@@ -109,6 +109,32 @@ class Data:
         X_val.sort_index(axis=1, inplace=True)
 
         return (X_train, X_val, y_train, y_val)
+    
+    @staticmethod
+    def train_for_stacking(down_sample=None, folds=5, aug=False):
+        X_train_df = []
+        y_train_df = []
+        train = pd.read_csv(
+            os.path.join(root, 'abt', 'abt_train.csv'),
+            dtype=schema)
+
+        if down_sample is not None:
+            train = train[train.order_id % down_sample == 0]
+
+        train.loc[:, 'reordered'] = train.reordered.fillna(0)
+
+        if aug:
+            train_aug = Data.train_aug(down_sample=down_sample)
+            train = pd.concat([train] + train_aug)
+
+        for i in range(folds):
+            X_train_df.append(train.drop(
+                ['eval_set', 'reordered'], axis=1
+            )[train.order_id % 5 == i])
+            X_train_df[i].sort_index(axis=1, inplace=True)
+            y_train_df.append(train.reordered[train.order_id % 5 == i])
+
+        return (X_train_df, y_train_df)
 
     @staticmethod
     def test(down_sample=None):

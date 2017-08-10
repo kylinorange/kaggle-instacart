@@ -5,3 +5,6 @@
 /abt/*.csv
 *.pyc
 *.bst
+/sb/*.pkl
+/sb/checkpoint
+/sb/prod2vec*

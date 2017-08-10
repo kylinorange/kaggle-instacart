@@ -1,0 +1,2 @@
+boost_rounds,booster,colsample_bytree,eval_metric,last_train-logloss,last_val-logloss,learning_rate,max_depth,min_child_weight,objective,search_id,subsample,tree_method
+644,gbtree,0.9,logloss,0.228286,0.240636,0.1,12,100,reg:logistic,0,0.7,hist
