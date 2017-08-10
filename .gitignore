@@ -8,3 +8,5 @@
 /sb/*.pkl
 /sb/checkpoint
 /sb/prod2vec*
+/stacking/*.csv
+/abt-share/*.csv

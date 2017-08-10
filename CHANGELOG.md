@@ -1,5 +1,7 @@
 # Change Log
 
+v10: stacking
+
 v9: sb features
 
 v8: days/orders since last not order
