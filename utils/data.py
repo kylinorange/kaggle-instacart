@@ -72,41 +72,36 @@ class Data:
                 if down_sample is not None:
                     df = df[df.order_id % down_sample == 0]
                 df['aug'] = 1
-                df.loc[:, 'reordered'] = df.reordered.fillna(0)
                 dfs.append(df)
         return dfs
 
     @staticmethod
-    def train(down_sample=None, test_size=0.2, aug=False, orig_val=False):
+    def train(down_sample=None, aug=False):
         train = pd.read_csv(
             os.path.join(root, 'abt-share', 'abt_train.csv'),
             dtype=schema)
-
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
-
         train['aug'] = 0
-        train.loc[:, 'reordered'] = train.reordered.fillna(0)
 
-        if aug and not orig_val:
+        if aug:
             train_aug = Data.train_aug(down_sample=down_sample)
             train = pd.concat([train] + train_aug)
+
+        train.loc[:, 'reordered'] = train.reordered.fillna(0)
+        Data.random_feature(train)
+        train.sort_index(axis=1, inplace=True)
+
+        return train
+
+    @staticmethod
+    def train_val(down_sample=None, test_size=0.2, aug=False):
+        train = Data.train(down_sample=down_sample, aug=aug)
 
         X_train, X_val, y_train, y_val = train_test_split(
             train.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1),
             train.reordered,
             test_size=test_size, random_state=1019)
-
-        if aug and orig_val:
-            train_aug = pd.concat(Data.train_aug(down_sample=down_sample))
-            X_train = pd.concat([X_train, train_aug.drop(['eval_set', 'product_id', 'order_id', 'reordered'], axis=1)])
-            y_train = pd.concat([y_train, train_aug.reordered])
-
-        Data.random_feature(X_train)
-        Data.random_feature(X_val)
-
-        X_train.sort_index(axis=1, inplace=True)
-        X_val.sort_index(axis=1, inplace=True)
 
         return (X_train, X_val, y_train, y_val)
 
@@ -121,7 +116,6 @@ class Data:
 
         test['aug'] = 0
         Data.random_feature(test)
-
         test.sort_index(axis=1, inplace=True)
 
         return test

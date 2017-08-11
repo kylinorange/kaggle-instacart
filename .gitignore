@@ -10,3 +10,5 @@
 /sb/prod2vec*
 /stacking/*.csv
 /abt-share/*.csv
+/abt/*.pkl
+/abt-share/*.pkl
