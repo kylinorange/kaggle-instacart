@@ -62,6 +62,13 @@ schema = {
 
 class Data:
     @staticmethod
+    def merge_product_embeddings(df):
+        pe = pd.read_pickle(os.path.join(root, 'abt-share', 'feature.product_embeddings.pkl'))
+        pe = pe[['product_id'] + [str(i) for i in range(32)]]
+        df = df.merge(pe, on='product_id', how='left')
+        return df
+
+    @staticmethod
     def train_aug(down_sample=None):
         dfs = []
         for s in range(32):
@@ -90,6 +97,7 @@ class Data:
 
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
         Data.random_feature(train)
+        train = Data.merge_product_embeddings(train)
         train.sort_index(axis=1, inplace=True)
 
         return train
@@ -116,6 +124,7 @@ class Data:
 
         test['aug'] = 0
         Data.random_feature(test)
+        test = Data.merge_product_embeddings(test)
         test.sort_index(axis=1, inplace=True)
 
         return test
