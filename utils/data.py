@@ -97,7 +97,7 @@ sb_features = [
     # 'prod_orders', 'prod_reorders',
     # 'up_order_rate',
     # 'up_orders_since_last_order',
-    'up_order_rate_since_first_order',
+    # 'up_order_rate_since_first_order',
     # 'up_orders',
     # 'up_first_order', 'up_last_order',
     # 'up_mean_cart_position',
@@ -126,7 +126,7 @@ def sb_prune(df):
     for old_name in sb_features:
         names[old_name] = "sb_{}".format(old_name)
     df.rename(columns=names, inplace=True)
-    df.rename(columns={'sb_up_order_rate_since_first_order': 'sb_up_know_this_prod_inverted'}, inplace=True)
+    # df.rename(columns={'sb_up_order_rate_since_first_order': 'sb_up_know_this_prod_inverted'}, inplace=True)
     return df
 
 def sb_train(augname=None):
