@@ -157,8 +157,8 @@ class Data:
     @staticmethod
     def train_aug(down_sample=None):
         dfs = []
-        for s in range(32):
-            for ms in range(2):
+        for s in range(4):
+            for ms in range(52):
                 augname = 'aug{}-{}'.format(s, ms)
                 df = pd.read_csv(
                     os.path.join(root, 'abt', 'abt_train.{}.csv'.format(augname)),
