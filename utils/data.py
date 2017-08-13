@@ -179,6 +179,35 @@ class Data:
         return (X_train, X_val, y_train, y_val)
 
     @staticmethod
+    def dtrain_dval(down_sample=None, test_size=0.2, aug=False):
+        X_train, X_val, y_train, y_val = Data.train_val(down_sample=down_sample, test_size=test_size, aug=aug)
+
+        feature_names = X_train.columns.format()
+
+        PANDAS_DTYPE_MAPPER = {'int8': 'int', 'int16': 'int', 'int32': 'int', 'int64': 'int',
+                       'uint8': 'int', 'uint16': 'int', 'uint32': 'int', 'uint64': 'int',
+                       'float16': 'float', 'float32': 'float', 'float64': 'float',
+                       'bool': 'i'}
+        feature_types = [PANDAS_DTYPE_MAPPER[dtype.name] for dtype in X_train.dtypes]
+
+        X_train = X_train.values.astype(np.float32)
+        X_val = X_val.values.astype(np.float32)
+        gc.collect()
+
+        dtrain = xgboost.DMatrix(
+            data=X_train, label=y_train,
+            feature_names=feature_names,
+            feature_types=feature_types)
+
+        dval = xgboost.DMatrix(
+            data=X_val, label=y_val,
+            feature_names=feature_names,
+            feature_types=feature_types)
+
+        gc.collect()
+        return (dtrain, dval)
+
+    @staticmethod
     def test(down_sample=None):
         test = pd.read_csv(
             os.path.join(root, 'abt-share', 'abt_test.csv'),
