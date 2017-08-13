@@ -6,6 +6,21 @@ import xgboost
 from sklearn.model_selection import train_test_split
 
 import os, gc
+import time
+
+class Timeit:
+    def __init__(self, process_name, verbose=1):
+        self.process_name = process_name
+        self.verbose = verbose
+    def __enter__(self):
+        if self.verbose:
+            print(self.process_name + " starts...")
+            self.begin_time = time.time()
+    def __exit__(self, type, value, traceback):
+        if self.verbose:
+            end_time = time.time()
+            # print(self.process_name + " ended.")
+            print('{}: {:.2f}s'.format(self.process_name, end_time - self.begin_time))
 
 root_paths = [
     "/data/kaggle-instacart",
@@ -147,20 +162,24 @@ class Data:
                     df = df[df.order_id % down_sample == 0]
                 df = df.merge(sb_train(augname=augname), how='left', on=['order_id', 'product_id'])
                 dfs.append(df)
+                if len(dfs) % 10 == 0:
+                    print('Loaded {} aug shards'.format(len(dfs)))
         return dfs
 
     @staticmethod
     def train(down_sample=None, aug=False):
-        train = pd.read_csv(
-            os.path.join(root, 'abt-share', 'abt_train.csv'),
-            dtype=schema)
-        if down_sample is not None:
-            train = train[train.order_id % down_sample == 0]
-        train = train.merge(sb_train(augname=None), how='left', on=['order_id', 'product_id'])
+        with Timeit('Load orig data'):
+            train = pd.read_csv(
+                os.path.join(root, 'abt-share', 'abt_train.csv'),
+                dtype=schema)
+            if down_sample is not None:
+                train = train[train.order_id % down_sample == 0]
+            train = train.merge(sb_train(augname=None), how='left', on=['order_id', 'product_id'])
 
         if aug:
-            train_aug = Data.train_aug(down_sample=down_sample)
-            train = pd.concat([train] + train_aug)
+            with Timeit('Load aug data'):
+                train_aug = Data.train_aug(down_sample=down_sample)
+                train = pd.concat([train] + train_aug)
 
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
         train.sort_index(axis=1, inplace=True)
