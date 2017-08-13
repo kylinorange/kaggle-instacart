@@ -20,44 +20,44 @@ for p in root_paths:
 
 schema = {
     'product_id': np.int32,
-    'up_order_count': np.int16,
-    'up_first_order_number': np.int16,
-    'up_last_order_number': np.int16,
+    'order_id': np.int32,
+    'eval_set': str,
+    'reordered': np.float32,
+    'up_order_count': np.float32,
+    'up_first_order_number': np.float32,
+    'up_last_order_number': np.float32,
     'up_average_cart_position': np.float32,
     'up_days_since_last_order': np.float32,
-    'prod_total_cnt': np.int32,
+    'prod_total_cnt': np.float32,
     'prod_reorder_total_cnt': np.float32,
-    'prod_user_cnt': np.int32,
-    'prod_return_user_cnt': np.int32,
+    'prod_user_cnt': np.float32,
+    'prod_return_user_cnt': np.float32,
     'prod_user_reorder_ratio': np.float32,
     'prod_product_reorder_ratio': np.float32,
-    'user_total_orders': np.int16,
+    'user_total_orders': np.float32,
     'user_sum_days_since_prior_order': np.float32,
     'user_mean_days_since_prior_order': np.float32,
     'user_reorder_ratio': np.float32,
-    'user_total_products': np.int16,
-    'user_distinct_products': np.int16,
+    'user_total_products': np.float32,
+    'user_distinct_products': np.float32,
     'user_average_basket': np.float32,
-    'order_id': np.int32,
-    'eval_set': str,
     'days_since_prior_order': np.float32,
-    'cat_total_bought_cnt': np.int32,
+    'cat_total_bought_cnt': np.float32,
     'cat_reorder_total_cnt': np.float32,
-    'cat_user_cnt': np.int32,
-    'cat_return_user_cnt': np.int32,
+    'cat_user_cnt': np.float32,
+    'cat_return_user_cnt': np.float32,
     'cat_user_reorder_ratio': np.float32,
     'cat_product_reorder_ratio': np.float32,
     'cat_num_of_prods_a_user_buys_in_this_cat_mean': np.float32,
     'cat_num_of_prods_a_user_buys_in_this_cat_std': np.float32,
-    'cat_num_of_prods_a_user_buys_in_this_cat_max': np.int16,
+    'cat_num_of_prods_a_user_buys_in_this_cat_max': np.float32,
     'up_order_rate': np.float32,
-    'up_order_since_last_order': np.int16,
+    'up_order_since_last_order': np.float32,
     'up_order_rate_since_first_order': np.float32,
-    'reordered': np.float32,
     'prod_market_share_hod': np.float32,
     'prod_market_share_dow': np.float32,
     'up_days_since_last_not_order': np.float32,
-    'up_order_since_last_not_order': np.float16
+    'up_order_since_last_not_order': np.float32
 }
 
 pe = pd.read_pickle(os.path.join(root, 'abt-share', 'feature.product_embeddings.pkl'))
@@ -69,46 +69,22 @@ def product_embeddings():
     return pe
 
 sb_features = [
-    # 'reordered_dow_ration', 'reordered_dow', 'reordered_dow_size',
-    # 'reordered_prev', 'add_to_cart_order_prev', 'order_dow_prev', 'order_hour_of_day_prev',
-    'user_product_reordered_ratio', 'reordered_sum',
-    'add_to_cart_order_inverted_mean', 'add_to_cart_order_relative_mean',
-    # 'reorder_prob',
-    'last', 'prev1', 'prev2', 'median', 'mean',
-    'dep_reordered_ratio', 'aisle_reordered_ratio',
+    'user_product_reordered_ratio',
+    'reordered_sum',
+    'add_to_cart_order_inverted_mean',
+    'add_to_cart_order_relative_mean',
+    'dep_reordered_ratio',
+    'aisle_reordered_ratio',
     'aisle_products',
     'aisle_reordered',
     'dep_products',
     'dep_reordered',
-    # 'prod_users_unq', 'prod_users_unq_reordered',
-    # 'order_number',
-    # 'prod_add_to_card_mean',
-    # 'days_since_prior_order',
     'order_dow', 'order_hour_of_day',
-    # 'reorder_ration',
-    # 'user_orders',
-    # 'user_order_starts_at',
-    # 'user_mean_days_since_prior',
-    # 'user_median_days_since_prior',
-    # 'user_average_basket',
-    # 'user_distinct_products',
     'user_reorder_ratio',
-    # 'user_total_products',
-    # 'prod_orders', 'prod_reorders',
-    # 'up_order_rate',
-    # 'up_orders_since_last_order',
-    # 'up_order_rate_since_first_order',
-    # 'up_orders',
-    # 'up_first_order', 'up_last_order',
-    # 'up_mean_cart_position',
-    # 'up_median_cart_position',
     'days_since_prior_order_mean',
-    # 'days_since_prior_order_median',
     'order_dow_mean',
-    # 'order_dow_median',
     'order_hour_of_day_mean',
-    # 'order_hour_of_day_median'
-] + [str(i) for i in range(32)]
+] + [str(i) for i in range(32)] + ['last', 'prev1', 'prev2', 'median', 'mean']
 
 def up_interval_stats(augname=None):
     if augname is None:
@@ -122,11 +98,15 @@ def up_interval_stats(augname=None):
 
 def sb_prune(df):
     df = df[sb_features + ['order_id', 'product_id']]
+
+    for col in sb_features:
+        df[col] = df[col].astype(np.float32)
+
     names = {}
     for old_name in sb_features:
         names[old_name] = "sb_{}".format(old_name)
     df.rename(columns=names, inplace=True)
-    # df.rename(columns={'sb_up_order_rate_since_first_order': 'sb_up_know_this_prod_inverted'}, inplace=True)
+
     return df
 
 def sb_train(augname=None):
@@ -165,7 +145,6 @@ class Data:
                     dtype=schema)
                 if down_sample is not None:
                     df = df[df.order_id % down_sample == 0]
-                df['aug'] = 1
                 df = df.merge(sb_train(augname=augname), how='left', on=['order_id', 'product_id'])
                 dfs.append(df)
         return dfs
@@ -177,7 +156,6 @@ class Data:
             dtype=schema)
         if down_sample is not None:
             train = train[train.order_id % down_sample == 0]
-        train['aug'] = 0
         train = train.merge(sb_train(augname=None), how='left', on=['order_id', 'product_id'])
 
         if aug:
@@ -185,7 +163,6 @@ class Data:
             train = pd.concat([train] + train_aug)
 
         train.loc[:, 'reordered'] = train.reordered.fillna(0)
-        Data.random_feature(train)
         train.sort_index(axis=1, inplace=True)
 
         return train
@@ -210,15 +187,7 @@ class Data:
         if down_sample is not None:
             test = test[test.order_id % down_sample == 0]
 
-        test['aug'] = 0
         test = test.merge(sb_test(), how='left', on=['order_id', 'product_id'])
-        Data.random_feature(test)
         test.sort_index(axis=1, inplace=True)
 
         return test
-
-    @staticmethod
-    def random_feature(data):
-        n = data.shape[0]
-        data['rand_uniform'] = np.random.uniform(0, 1, n).astype(np.float16)
-        data['rand_normal'] = np.random.normal(0, 1, n).astype(np.float16)
