@@ -1,5 +1,7 @@
 # Change Log
 
+v12: lightgbm
+
 v11: all features + full da
 
 v10: stacking
