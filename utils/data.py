@@ -5,7 +5,7 @@ import pandas as pd
 import xgboost
 from sklearn.model_selection import train_test_split
 
-import os
+import os, gc
 
 root_paths = [
     "/data/kaggle-instacart",
