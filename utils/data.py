@@ -60,9 +60,9 @@ schema = {
     'up_order_since_last_not_order': np.float32
 }
 
-# pe = pd.read_pickle(os.path.join(root, 'abt-share', 'feature.product_embeddings.pkl'))
-# pe = pe[['product_id'] + [i for i in range(32)]]
-# pe.columns = [str(c) for c in pe.columns]
+pe = pd.read_pickle(os.path.join(root, 'abt-share', 'feature.product_embeddings.pkl'))
+pe = pe[['product_id'] + [i for i in range(32)]]
+pe.columns = [str(c) for c in pe.columns]
 
 def product_embeddings():
     global pe
@@ -84,7 +84,7 @@ sb_features = [
     'days_since_prior_order_mean',
     'order_dow_mean',
     'order_hour_of_day_mean',
-] + ['last', 'prev1', 'prev2', 'median', 'mean']
+] + [str(i) for i in range(32)] + ['last', 'prev1', 'prev2', 'median', 'mean']
 
 def up_interval_stats(augname=None):
     if augname is None:
@@ -120,7 +120,7 @@ def sb_train(augname=None):
         train = pd.read_pickle(os.path.join(root, 'abt', 'abt_train.sb.{}.pkl'.format(augname)))
 
     train = train.merge(up_interval_stats(augname), on=['product_id', 'user_id'], how='left')
-    # train = train.merge(product_embeddings(), on='product_id', how='left')
+    train = train.merge(product_embeddings(), on='product_id', how='left')
     return sb_prune(train)
 
 def sb_test():
@@ -130,7 +130,7 @@ def sb_test():
         dfs.append(df)
     test = pd.concat(dfs, ignore_index=True)
     test = test.merge(up_interval_stats(), on=['product_id', 'user_id'], how='left')
-    # test = test.merge(product_embeddings(), on='product_id', how='left')
+    test = test.merge(product_embeddings(), on='product_id', how='left')
     return sb_prune(test)
 
 class Data:
