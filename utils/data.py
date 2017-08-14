@@ -215,11 +215,13 @@ class Data:
 
         dtrain = xgboost.DMatrix(
             data=X_train, label=y_train,
+            nthread=-1,
             feature_names=feature_names,
             feature_types=feature_types)
 
         dval = xgboost.DMatrix(
             data=X_val, label=y_val,
+            nthread=-1,
             feature_names=feature_names,
             feature_types=feature_types)
 
